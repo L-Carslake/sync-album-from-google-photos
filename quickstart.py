@@ -5,7 +5,7 @@ Creates a Photos v1 API service and prints the names and ids of the last 10 albu
 the user has access to.
 """
 from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request
 import os.path
 import pickle
@@ -29,9 +29,16 @@ def setup_api():
         if _creds and _creds.expired and _creds.refresh_token:
             _creds.refresh(Request())
         else:
-            _flow = InstalledAppFlow.from_client_secrets_file(
-                'client_secret.json', _SCOPES)
-            _creds = _flow.run_local_server()
+            _flow = Flow.from_client_secrets_file(
+                'client_secret.json', _SCOPES, redirect_uri='http://localhost:8080/')
+            _auth_url, _ = _flow.authorization_url(prompt='consent')
+            # Tell the user to go to the authorization URL.
+            print('Please go to this URL: {}'.format(_auth_url))
+            # The user will get an authorization code. This code is used to get the
+            # access token.
+            code = input('Enter the authorization code: ')
+            _flow.fetch_token(code=code)
+            _creds = _flow.credentials
         # Save the credentials for the next run
         with open('token.pickle', 'wb') as _token:
             pickle.dump(_creds, _token)
