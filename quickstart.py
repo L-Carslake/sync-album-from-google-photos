@@ -76,12 +76,11 @@ def list_album_contents(_service, _album_id):
     return _media_items
 
 
-def image_downloader(_media_items, _filename_index,):
+def image_downloader(_media_items, _filename_index,_directory):
     for _item in _media_items:
-        # TODO: 1 -Cropping
-        # TODO: Check if a photo or other type
-        # TODO: Pass in folder location
-        # TODO: Replace file name exception with new name
+        # TODO: Cropping, image to 4:3 or let photoframe do it?
+        # TODO: Pass in folder location, not a problem unless feh complains
+        # TODO: Replace file name exception with new name,
         if _item['id'] in _filename_index:
             # File already exists in index
             print('Photo: ' + _item['filename'] + ' exists')
@@ -89,13 +88,13 @@ def image_downloader(_media_items, _filename_index,):
             # File needs to be downloaded
             print('Photo: ' + _item['filename'] + ' Downloading')
             # Check if photo of same name exists
-            if os.path.exists("photos/" + _item["filename"]):
+            if os.path.exists(_directory + _item["filename"]):
                 raise Exception('Image of same name already exists')
             # Request photo
             _url = _item['baseUrl'] + '=w2048-h1536-c'
             _r = requests.get(_url, allow_redirects=True)
             # Save photo
-            open("photos/"+_item["filename"], 'wb').write(_r.content)
+            open(_directory + _item["filename"], 'wb').write(_r.content)
             _filename_index[_item['id']] = _item["filename"]
     return _filename_index
 
@@ -119,7 +118,7 @@ else:
     filenameIndex = {'Id': 'filename'}
 
 # Image downloader
-filenameIndex = image_downloader(mediaItems, filenameIndex)
+filenameIndex = image_downloader(mediaItems, filenameIndex, "/Images/")
 
 # Save index file
 with open('fileIndex.pickle', 'wb') as indexFile:

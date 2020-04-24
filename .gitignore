@@ -105,7 +105,7 @@ venv.bak/
 client_secret.json
 token.pickle
 
-/photos
+/Images
 fileIndex.pickle
 .idea
 .idea/dictionaries/lcarslake.xml
