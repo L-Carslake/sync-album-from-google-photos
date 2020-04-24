@@ -78,16 +78,23 @@ def list_album_contents(_service, _album_id):
 
 def image_downloader(_media_items, _filename_index,):
     for _item in _media_items:
-        # TODO: Cropping
+        # TODO: 1 -Cropping
         # TODO: Check if a photo or other type
+        # TODO: Pass in folder location
+        # TODO: Replace file name exception with new name
         if _item['id'] in _filename_index:
             # File already exists in index
             print('Photo: ' + _item['filename'] + ' exists')
         else:
             # File needs to be downloaded
             print('Photo: ' + _item['filename'] + ' Downloading')
+            # Check if photo of same name exists
+            if os.path.exists("photos/" + _item["filename"]):
+                raise Exception('Image of same name already exists')
+            # Request photo
             _url = _item['baseUrl'] + '=w2048-h1536-c'
             _r = requests.get(_url, allow_redirects=True)
+            # Save photo
             open("photos/"+_item["filename"], 'wb').write(_r.content)
             _filename_index[_item['id']] = _item["filename"]
     return _filename_index
@@ -104,7 +111,6 @@ mediaItems = list_album_contents(apiService, album['id'])
 
 # Check if the "fileIndex" file exists and load or create. This links the file ID to the image name
 # TODO: Compare index file against images in folder
-# TODO: What happens if two images with same name?
 if os.path.exists('fileIndex.pickle'):
     with open('fileIndex.pickle', 'rb') as indexFile:
         filenameIndex = pickle.load(indexFile)
@@ -113,7 +119,6 @@ else:
     filenameIndex = {'Id': 'filename'}
 
 # Image downloader
-
 filenameIndex = image_downloader(mediaItems, filenameIndex)
 
 # Save index file
