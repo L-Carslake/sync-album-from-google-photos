@@ -102,3 +102,10 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+client_secret.json
+token.pickle
+
+.jpg
+.jpeg
+.pikle
+.idea/
