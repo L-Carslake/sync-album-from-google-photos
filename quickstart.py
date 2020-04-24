@@ -118,7 +118,7 @@ else:
     filenameIndex = {'Id': 'filename'}
 
 # Image downloader
-filenameIndex = image_downloader(mediaItems, filenameIndex, "/Images/")
+filenameIndex = image_downloader(mediaItems, filenameIndex, "Images/")
 
 # Save index file
 with open('fileIndex.pickle', 'wb') as indexFile:
