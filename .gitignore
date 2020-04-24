@@ -105,7 +105,12 @@ venv.bak/
 client_secret.json
 token.pickle
 
-.jpg
-.jpeg
-.pikle
-.idea/
+/photos
+fileIndex.pickle
+.idea
+.idea/dictionaries/lcarslake.xml
+.idea/google-photos-api-python-quickstart.iml
+.idea/inspectionProfiles/profiles_settings.xml
+.idea/misc.xml
+.idea/modules.xml
+.idea/vcs.xml
