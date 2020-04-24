@@ -1,8 +1,7 @@
 """
 Shows basic usage of the Photos v1 API.
 
-Creates a Photos v1 API service and prints the names and ids of the last 10 albums
-the user has access to.
+Creates a Photos v1 API service and downloads the images in the "Photoframe Album"
 """
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import Flow
@@ -11,11 +10,18 @@ import os.path
 import pickle
 import requests
 
+# Directory to store images
+# TODO: Move to conf file
+imagesDir = "Images/"
+albumTitle = "Photoframe"
 
 def setup_api():
     # TODO: Pass in token and client_secret as parameters
     # Setup the Photo v1 API
     # From example https://developers.google.com/people/quickstart/python
+    # How to use: Follow link in console and copy auth code from final URL
+    # Input: None
+    # Output: _service: apiService for access to photos
     _SCOPES = ['https://www.googleapis.com/auth/photoslibrary.readonly']
     _creds = None
     # The file token.pickle stores the user's access and refresh tokens, and is
@@ -47,8 +53,15 @@ def setup_api():
 
 
 def find_album(_service, _title):
+    # Finds album with the provided title
+    # In: _service: Created using the googleapiclient
+    #     _title: title of the album of interest (string)
+    # Out: _album: Photos api album object
+    #             https://developers.google.com/photos/library/reference/rest/v1/albums/list#response-body
     # TODO: fix error on album with no title
     # TODO: Check title is string and if blank use "Photoframe"
+    # TODO: Alternative to exception due to album not found
+
     # Get first set of albums
     _request = _service.albums().list(pageSize=50, fields="nextPageToken,albums(id,title)")
     _results = _request.execute()
@@ -72,6 +85,12 @@ def find_album(_service, _title):
 
 
 def list_album_contents(_service, _album_id):
+    # Lists all of the items in an album
+    # In: _service: apiService for access to photos
+    #     _album_id: id of album to find contents of (string)
+    # Out: _media_items: list of media items in album.
+    #      https://developers.google.com/photos/library/reference/rest/v1/mediaItems#resource-mediaitem
+
     _request = _service.mediaItems().search(body={'albumId': _album_id, 'pageSize': '100'},
                                             fields="nextPageToken,mediaItems")
     _media_items = []
@@ -84,6 +103,14 @@ def list_album_contents(_service, _album_id):
 
 
 def image_downloader(_media_items, _filename_index,_directory):
+    # Downloads all of the mediaitems in list, saves to _directory
+    # In: _media_items: list of media items in album.
+    #                   https://developers.google.com/photos/library/reference/rest/v1/mediaItems#resource-mediaitem
+    #     _filename_index: Dictionary of photo id and filenames, aim is to list the currently downloaded images
+    #                      Is auto-generated if empty
+    #     _directory: Location to store photos, must end in "/"
+    # Out: _filename_index:  Dictionary of photo id and filenames, listing the currently downloaded images
+
     for _item in _media_items:
         # TODO: Cropping, image to 4:3 or let photoframe do it?
         # TODO: Pass in folder location, not a problem unless feh complains
@@ -106,13 +133,11 @@ def image_downloader(_media_items, _filename_index,_directory):
     return _filename_index
 
 
-# Call the Photo v1 API
+# Call the Photo v1 API to setup a service for use later
 apiService = setup_api()
-
 # look for album titled: 'Photoframe'
-album = find_album(apiService, 'Photoframe')
-
-# List album contents
+album = find_album(apiService, albumTitle)
+# Get the contents of the album
 mediaItems = list_album_contents(apiService, album['id'])
 
 # Check if the "fileIndex" file exists and load or create. This links the file ID to the image name
@@ -124,9 +149,11 @@ else:
     # Does not exist, create a blank dict
     filenameIndex = {'Id': 'filename'}
 
-# Image downloader
-filenameIndex = image_downloader(mediaItems, filenameIndex, "Images/")
+# Download the images
+filenameIndex = image_downloader(mediaItems, filenameIndex, imagesDir)
 
-# Save index file
+# Save the "filenameIndex" file
 with open('fileIndex.pickle', 'wb') as indexFile:
     pickle.dump(filenameIndex, indexFile)
+
+
