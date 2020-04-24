@@ -65,11 +65,14 @@ def find_album(_service, _title):
 
 
 def list_album_contents(_service, _album_id):
-    # TODO: Loop over pages
-    _request = _service.mediaItems().search(body={'albumId': _album_id, 'pageSize': '10'},
+    _request = _service.mediaItems().search(body={'albumId': _album_id, 'pageSize': '100'},
                                             fields="nextPageToken,mediaItems")
-    _results = _request.execute()
-    _media_items = _results['mediaItems']
+    _media_items = []
+    while _request is not None:
+        _results = _request.execute()
+        _media_items.extend(_results['mediaItems'])
+        _request = _service.albums().list_next(previous_request=_request, previous_response=_results)
+
     return _media_items
 
 
