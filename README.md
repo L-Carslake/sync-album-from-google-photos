@@ -1,4 +1,4 @@
 # google-photos-api-python-quickstart
-Quickstart example of how to use Google Photos API with Python
+Using Google Photos API with Python, to download all images in a named album.
 
-This example show how to use Python to access Google Photos API v1 to list 10 latest albums.
+Configs are at the top of the downloadImages.py file
