@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Shows basic usage of the Photos v1 API.
 
@@ -14,6 +15,7 @@ import requests
 # TODO: Move to conf file
 imagesDir = "/Images/"
 albumTitle = "Photoframe"
+projectDir = "/home/lawrence/sync-album-from-google-photos/"
 
 def setup_api():
     # TODO: Pass in token and client_secret as parameters
@@ -27,8 +29,8 @@ def setup_api():
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as _token:
+    if os.path.exists(projectDir + 'token.pickle'):
+        with open(projectDir + 'token.pickle', 'rb') as _token:
             _creds = pickle.load(_token)
     # If there are no (valid) credentials available, let the user log in.
     if not _creds or not _creds.valid:
@@ -36,7 +38,7 @@ def setup_api():
             _creds.refresh(Request())
         else:
             _flow = Flow.from_client_secrets_file(
-                'client_secret.json', _SCOPES, redirect_uri='http://localhost:8080/')
+                projectDir + 'client_secret.json', _SCOPES, redirect_uri='http://localhost:8080/')
             _auth_url, _ = _flow.authorization_url(prompt='consent')
             # Tell the user to go to the authorization URL.
             print('Please go to this URL: {}'.format(_auth_url))
@@ -46,7 +48,7 @@ def setup_api():
             _flow.fetch_token(code=code)
             _creds = _flow.credentials
         # Save the credentials for the next run
-        with open('token.pickle', 'wb') as _token:
+        with open(projectDir + 'token.pickle', 'wb') as _token:
             pickle.dump(_creds, _token)
     _service = build('photoslibrary', 'v1', credentials=_creds)
     return _service
@@ -142,8 +144,8 @@ mediaItems = list_album_contents(apiService, album['id'])
 
 # Check if the "fileIndex" file exists and load or create. This links the file ID to the image name
 # TODO: Compare index file against images in folder
-if os.path.exists('fileIndex.pickle'):
-    with open('fileIndex.pickle', 'rb') as indexFile:
+if os.path.exists(projectDir + 'fileIndex.pickle'):
+    with open(projectDir + 'fileIndex.pickle', 'rb') as indexFile:
         filenameIndex = pickle.load(indexFile)
 else:
     # Does not exist, create a blank dict
@@ -153,7 +155,7 @@ else:
 filenameIndex = image_downloader(mediaItems, filenameIndex, imagesDir)
 
 # Save the "filenameIndex" file
-with open('fileIndex.pickle', 'wb') as indexFile:
+with open(projectDir + 'fileIndex.pickle', 'wb') as indexFile:
     pickle.dump(filenameIndex, indexFile)
 
 
