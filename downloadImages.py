@@ -12,7 +12,7 @@ import requests
 
 # Directory to store images
 # TODO: Move to conf file
-imagesDir = "Images/"
+imagesDir = "/Images/"
 albumTitle = "Photoframe"
 
 def setup_api():
