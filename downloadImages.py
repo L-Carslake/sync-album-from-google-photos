@@ -104,6 +104,28 @@ def list_album_contents(_service, _album_id):
     return _media_items
 
 
+def delete_removed_images(_filename_index, __media_items, _images_dir):
+    # Check for deletions in Photos Album
+    # If item is in _filename_index but not in __media_items, delete
+    _found = 0
+    _idToDelete = []
+    for _idInDir in _filename_index:
+        for _mediaItemInAlbum in __media_items:
+            if _idInDir == _mediaItemInAlbum['id']:
+                _found = 1
+        if not _found:
+            _idToDelete.append(_idInDir)
+        _found = 0
+
+    for _id in _idToDelete:
+        print("Delete: " + _filename_index.get(_id))
+        if os.path.exists(_images_dir + _filename_index.get(_id)):
+            os.remove(_images_dir + _filename_index.get(_id))
+        del _filename_index[_id]
+
+    return _filename_index
+
+
 def image_downloader(_media_items, _filename_index,_directory):
     # Downloads all of the mediaitems in list, saves to _directory
     # In: _media_items: list of media items in album.
@@ -119,10 +141,10 @@ def image_downloader(_media_items, _filename_index,_directory):
         # TODO: Replace file name exception with new name,
         if _item['id'] in _filename_index:
             # File already exists in index
-            print('Photo: ' + _item['filename'] + ' exists')
+            print('Keep: ' + _item['filename'])
         else:
             # File needs to be downloaded
-            print('Photo: ' + _item['filename'] + ' Downloading')
+            print('Download: ' + _item['filename'])
             # Check if photo of same name exists
             if os.path.exists(_directory + _item["filename"]):
                 raise Exception('Image of same name already exists')
@@ -149,7 +171,10 @@ if os.path.exists(projectDir + 'fileIndex.pickle'):
         filenameIndex = pickle.load(indexFile)
 else:
     # Does not exist, create a blank dict
-    filenameIndex = {'Id': 'filename'}
+    filenameIndex = {}
+
+#Delete images removed from album
+filenameIndex = delete_removed_images(filenameIndex, mediaItems, imagesDir)
 
 # Download the images
 filenameIndex = image_downloader(mediaItems, filenameIndex, imagesDir)
