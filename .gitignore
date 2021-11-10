@@ -102,7 +102,7 @@ venv.bak/
 
 # mypy
 .mypy_cache/
-client_secret.json
+credentials.json
 token.pickle
 
 /Images
@@ -116,5 +116,5 @@ fileIndex.pickle
 .idea/vcs.xml
 .DS_Store
 /venv
-client_secret.json
+credentials.json
 token.json
