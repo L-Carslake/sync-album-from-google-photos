@@ -50,7 +50,7 @@ def setup_api():
         # Save the credentials for the next run
         with open(projectDir + 'token.pickle', 'wb') as _token:
             pickle.dump(_creds, _token)
-    _service = build('photoslibrary', 'v1', credentials=_creds, static_discovery=False)
+    _service = build('photoslibrary', 'v1', credentials=_creds)
     return _service
 
 
