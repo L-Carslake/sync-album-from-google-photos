@@ -138,29 +138,39 @@ def image_downloader(_media_items, _filename_index, _directory):
     # Out: _filename_index:  Dictionary of photo id and filenames, listing the currently downloaded images
 
     for _item in _media_items:
-        # TODO: Cropping, image to 4:3 or let photoframe do it?
-        # TODO: Pass in folder location, not a problem unless feh complains
-        # TODO: Replace file name exception with new name,
-        # TODO: Make thumbnails folder if it does not exist
         if _item['id'] in _filename_index:
             # File already exists in index
             print('Keep: ' + _item['filename'])
         else:
             # File needs to be downloaded
             print('Download: ' + _item['filename'])
+
             # Check if photo of same name exists
             if os.path.exists(_directory + _item["filename"]):
-                raise Exception('Image of same name already exists')
-            # Request photo
-            _url = _item['baseUrl'] + '=w2048-h1536-c'
-            _r = requests.get(_url, allow_redirects=True)
-            # Save photo
-            open(_directory + _item["filename"], 'wb').write(_r.content)
+                _filename, _file_extension = os.path.splitext(_item["filename"])
+                _filename = _filename + '_2'
+                _item["filename"] = _filename + _file_extension
+
+            # Download Media
+            if 'photo' in _item['mediaMetadata']:
+                # Request photo
+                _url = _item['baseUrl'] + '=w2048-h1536-c'
+                _r = requests.get(_url, allow_redirects=True)
+                # Save photo
+                open(os.path.join(_directory, _item["filename"]), 'wb').write(_r.content)
+            elif 'video' in _item['mediaMetadata']:
+                # TODO: Check Video is ready
+                # Request video
+                _url = _item['baseUrl'] + '=dv'
+                _r = requests.get(_url, allow_redirects=True)
+                # Save video
+                open(os.path.join(_directory, _item["filename"]), 'wb').write(_r.content)
+
             # Request thumbnail
             _url = _item['baseUrl'] + '=w400-h400'
             _r = requests.get(_url, allow_redirects=True)
             # Save Thumbnail
-            open(_directory + "Thumbnails/" + _item["filename"], 'wb').write(_r.content)
+            open(os.path.join(_directory, "Thumbnails", _item["filename"]), 'wb').write(_r.content)
             # Add image to downloaded list
             _filename_index[_item['id']] = _item["filename"]
     return _filename_index
@@ -172,9 +182,9 @@ apiService = setup_api()
 album = find_album(apiService, albumTitle)
 # Get the contents of the album
 mediaItems = list_album_contents(apiService, album['id'])
+# TODO: Make thumbnails folder if it does not exist
 
 # Check if the "fileIndex" file exists and load or create. This links the file ID to the image name
-# TODO: Compare index file against images in folder
 if os.path.exists(projectDir + 'fileIndex.pickle'):
     with open(projectDir + 'fileIndex.pickle', 'rb') as indexFile:
         filenameIndex = pickle.load(indexFile)
@@ -182,7 +192,7 @@ else:
     # Does not exist, create a blank dict
     filenameIndex = {}
 
-#Delete images removed from album
+# Delete images removed from album
 filenameIndex = delete_removed_images(filenameIndex, mediaItems, imagesDir)
 
 # Download the images
@@ -191,5 +201,3 @@ filenameIndex = image_downloader(mediaItems, filenameIndex, imagesDir)
 # Save the "filenameIndex" file
 with open(projectDir + 'fileIndex.pickle', 'wb') as indexFile:
     pickle.dump(filenameIndex, indexFile)
-
-
