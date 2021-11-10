@@ -121,6 +121,8 @@ def delete_removed_images(_filename_index, __media_items, _images_dir):
         print("Delete: " + _filename_index.get(_id))
         if os.path.exists(_images_dir + _filename_index.get(_id)):
             os.remove(_images_dir + _filename_index.get(_id))
+        if os.path.exists(_images_dir + "Thumbnails/" + _filename_index.get(_id)):
+            os.remove(_images_dir + _filename_index.get(_id))
         del _filename_index[_id]
 
     return _filename_index
