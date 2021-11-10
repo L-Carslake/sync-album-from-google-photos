@@ -126,7 +126,7 @@ def delete_removed_images(_filename_index, __media_items, _images_dir):
     return _filename_index
 
 
-def image_downloader(_media_items, _filename_index,_directory):
+def image_downloader(_media_items, _filename_index, _directory):
     # Downloads all of the mediaitems in list, saves to _directory
     # In: _media_items: list of media items in album.
     #                   https://developers.google.com/photos/library/reference/rest/v1/mediaItems#resource-mediaitem
@@ -139,6 +139,7 @@ def image_downloader(_media_items, _filename_index,_directory):
         # TODO: Cropping, image to 4:3 or let photoframe do it?
         # TODO: Pass in folder location, not a problem unless feh complains
         # TODO: Replace file name exception with new name,
+        # TODO: Make thumbnails folder if it does not exist
         if _item['id'] in _filename_index:
             # File already exists in index
             print('Keep: ' + _item['filename'])
@@ -153,6 +154,12 @@ def image_downloader(_media_items, _filename_index,_directory):
             _r = requests.get(_url, allow_redirects=True)
             # Save photo
             open(_directory + _item["filename"], 'wb').write(_r.content)
+            # Request thumbnail
+            _url = _item['baseUrl'] + '=w400-h400'
+            _r = requests.get(_url, allow_redirects=True)
+            # Save Thumbnail
+            open(_directory + "Thumbnails/" + _item["filename"], 'wb').write(_r.content)
+            # Add image to downloaded list
             _filename_index[_item['id']] = _item["filename"]
     return _filename_index
 
