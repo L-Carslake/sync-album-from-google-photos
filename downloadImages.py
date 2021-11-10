@@ -10,6 +10,9 @@ from google.auth.transport.requests import Request
 import os.path
 import pickle
 import requests
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 # Directory to store images
 # TODO: Move to conf file
@@ -29,7 +32,7 @@ def setup_api():
     # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists(projectDir + 'token.pickle'):
+    if os.path.isfile(os.path.join(projectDir, 'token.pickle')):
         with open(projectDir + 'token.pickle', 'rb') as _token:
             _creds = pickle.load(_token)
     # If there are no (valid) credentials available, let the user log in.
@@ -82,7 +85,7 @@ def find_album(_service, _title):
                 raise Exception('album named "photoframe" not found and no more albums to search!')
             _results = _request.execute()
             _albums = _results.get('albums', [])
-    print('Found: ' + _album['title'] + ' Album')
+    logging.info('Found: ' + _album['title'] + ' Album')
     return _album
 
 
@@ -118,7 +121,7 @@ def delete_removed_images(_filename_index, __media_items, _images_dir):
         _found = 0
 
     for _id in _idToDelete:
-        print("Delete: " + _filename_index.get(_id))
+        logging.info("Delete: " + _filename_index.get(_id))
         if os.path.exists(_images_dir + _filename_index.get(_id)):
             os.remove(_images_dir + _filename_index.get(_id))
         if os.path.exists(_images_dir + "Thumbnails/" + _filename_index.get(_id)):
@@ -140,13 +143,14 @@ def image_downloader(_media_items, _filename_index, _directory):
     for _item in _media_items:
         if _item['id'] in _filename_index:
             # File already exists in index
-            print('Keep: ' + _item['filename'])
+            logging.info('Keep: ' + _item['filename'])
         else:
             # File needs to be downloaded
-            print('Download: ' + _item['filename'])
+            logging.info('Download: ' + _item['filename'])
 
             # Check if photo of same name exists
             if os.path.exists(_directory + _item["filename"]):
+                logging.warning("Duplicate exists for " + _item["filename"])
                 _filename, _file_extension = os.path.splitext(_item["filename"])
                 _filename = _filename + '_2'
                 _item["filename"] = _filename + _file_extension
@@ -158,7 +162,7 @@ def image_downloader(_media_items, _filename_index, _directory):
                 _r = requests.get(_url, allow_redirects=True)
                 # Save photo
                 open(os.path.join(_directory, _item["filename"]), 'wb').write(_r.content)
-            elif 'video' in _item['mediaMetadata']:
+            if 'video' in _item['mediaMetadata']:
                 # TODO: Check Video is ready
                 # Request video
                 _url = _item['baseUrl'] + '=dv'
