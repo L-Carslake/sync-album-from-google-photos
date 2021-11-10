@@ -5,18 +5,17 @@ Shows basic usage of the Photos v1 API.
 Creates a Photos v1 API service and downloads the images in the "Photoframe Album"
 """
 from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
+from google_auth_oauthlib.flow import Flow
 from google.auth.transport.requests import Request
-from google.oauth2.credentials import Credentials
 import os.path
 import pickle
 import requests
 
 # Directory to store images
 # TODO: Move to conf file
-imagesDir = "/Images/"
+imagesDir = "./Images/"
 albumTitle = "Photoframe"
-projectDir = "/home/lawrence/sync-album-from-google-photos/"
+projectDir = "./"
 
 def setup_api():
     # TODO: Pass in token and client_secret as parameters
@@ -25,28 +24,34 @@ def setup_api():
     # How to use: Follow link in console and copy auth code from final URL
     # Input: None
     # Output: _service: apiService for access to photos
-    SCOPES = ['https://www.googleapis.com/auth/photoslibrary.readonly']
-
-    creds = None
-    # The file token.json stores the user's access and refresh tokens, and is
+    _SCOPES = ['https://www.googleapis.com/auth/photoslibrary.readonly']
+    _creds = None
+    # The file token.pickle stores the user's access and refresh tokens, and is
     # created automatically when the authorization flow completes for the first
     # time.
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    if os.path.exists(projectDir + 'token.pickle'):
+        with open(projectDir + 'token.pickle', 'rb') as _token:
+            _creds = pickle.load(_token)
     # If there are no (valid) credentials available, let the user log in.
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+    if not _creds or not _creds.valid:
+        if _creds and _creds.expired and _creds.refresh_token:
+            _creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            creds = flow.run_local_server(port=8080)
+            _flow = Flow.from_client_secrets_file(
+                projectDir + 'client_secret.json', _SCOPES, redirect_uri='http://localhost:8080/')
+            _auth_url, _ = _flow.authorization_url(prompt='consent')
+            # Tell the user to go to the authorization URL.
+            print('Please go to this URL: {}'.format(_auth_url))
+            # The user will get an authorization code. This code is used to get the
+            # access token.
+            code = input('Enter the authorization code: ')
+            _flow.fetch_token(code=code)
+            _creds = _flow.credentials
         # Save the credentials for the next run
-        with open('token.json', 'w') as token:
-            token.write(creds.to_json())
-
-    service = build('photoslibrary', 'v1', credentials=creds, static_discovery=False)
-    return service
+        with open(projectDir + 'token.pickle', 'wb') as _token:
+            pickle.dump(_creds, _token)
+    _service = build('photoslibrary', 'v1', credentials=_creds, static_discovery=False)
+    return _service
 
 
 def find_album(_service, _title):
@@ -176,3 +181,5 @@ filenameIndex = image_downloader(mediaItems, filenameIndex, imagesDir)
 # Save the "filenameIndex" file
 with open(projectDir + 'fileIndex.pickle', 'wb') as indexFile:
     pickle.dump(filenameIndex, indexFile)
+
+
