@@ -57,7 +57,7 @@ def setup_api():
         # Save the credentials for the next run
         with open('token.json', 'w') as token:
             token.write(creds.to_json())
-    service = build('photoslibrary', 'v1', credentials=creds, static_discovery=False)
+    service = build('photoslibrary', 'v1', credentials=creds)
     return service
 
 
